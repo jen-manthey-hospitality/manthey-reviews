@@ -1,34 +1,34 @@
 {
   "properties": [
     {
-      "id": "yacht-starship",
-      "name": "Yacht StarShip",
-      "googleBusinessUrl": "https://www.google.com/maps/place/Yacht+StarShip",
-      "googlePlaceId": null
-    },
-    {
       "id": "craft-tampa",
       "name": "Craft Tampa",
-      "googleBusinessUrl": "https://www.google.com/maps/place/Craft+Tampa",
-      "googlePlaceId": null
+      "googleMapsUrl": "https://www.google.com/maps/place/Craft+Tampa/@27.9421309,-82.4507905"
+    },
+    {
+      "id": "yacht-starship-tampa",
+      "name": "Yacht StarShip (Tampa)",
+      "googleMapsUrl": "https://www.google.com/maps/place/Yacht+StarShip+Cruises+%26+Events/@27.9422153,-82.4507805"
+    },
+    {
+      "id": "yacht-starship-st-pete",
+      "name": "Yacht StarShip (St. Petersburg)",
+      "googleMapsUrl": "https://www.google.com/maps/place/Yacht+StarShip+Cruises+%26+Events/@27.976972,-82.8271068"
     },
     {
       "id": "pirate-water-taxi",
       "name": "Pirate Water Taxi",
-      "googleBusinessUrl": "https://www.google.com/maps/place/Pirate+Water+Taxi",
-      "googlePlaceId": null
-    },
-    {
-      "id": "nashville-riverboat",
-      "name": "Nashville Riverboat",
-      "googleBusinessUrl": "https://www.google.com/maps/place/Nashville+Riverboat",
-      "googlePlaceId": null
+      "googleMapsUrl": "https://www.google.com/maps/place/Pirate+Water+Taxi/@27.9400765,-82.457641"
     },
     {
       "id": "lost-pearl",
       "name": "Lost Pearl",
-      "googleBusinessUrl": "https://www.google.com/maps/place/Lost+Pearl",
-      "googlePlaceId": null
+      "googleMapsUrl": "https://www.google.com/maps/place/Tampa+Pirate+Ship+-+The+Lost+Pearl/@27.9402398,-82.4577592"
+    },
+    {
+      "id": "nashville-riverboats",
+      "name": "Nashville Riverboats",
+      "googleMapsUrl": "https://www.google.com/maps/place/Nashville+Riverboats/@36.1632728,-86.7769112"
     }
   ]
 }

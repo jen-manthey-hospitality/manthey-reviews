@@ -1,16 +1,17 @@
 require('dotenv').config();
+const puppeteer = require('puppeteer');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ofgicptdoygttkyndrnb.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_CSaPz3PkfOn6eEUpBoWxWQ_l7IaTzAK';
 
 function generateId() {
   return crypto.randomBytes(12).toString('hex');
 }
 
-async function supabaseQuery(table, data, operation = 'insert') {
+async function supabaseQuery(table, data) {
   const url = `${SUPABASE_URL}/rest/v1/${table}`;
 
   try {
@@ -37,149 +38,175 @@ async function supabaseQuery(table, data, operation = 'insert') {
   }
 }
 
-const testReviews = [
-  {
-    property: 'yacht-starship',
-    text: 'Amazing experience on the Yacht StarShip! The bartender Sarah was incredibly friendly and the live music was fantastic.',
-    rating: 5,
-    name: 'Jane D.',
-    date: '2026-07-22'
-  },
-  {
-    property: 'yacht-starship',
-    text: 'Great food and wonderful atmosphere. Captain Mike was very professional and accommodating.',
-    rating: 5,
-    name: 'Tom H.',
-    date: '2026-07-21'
-  },
-  {
-    property: 'yacht-starship',
-    text: 'Beautiful vessel, clean and well-maintained. The service was excellent!',
-    rating: 5,
-    name: 'Lisa M.',
-    date: '2026-07-20'
-  },
-  {
-    property: 'craft-tampa',
-    text: 'Nice bar setup with good drinks. DJ Jason was great but the place was a bit overpriced.',
-    rating: 3,
-    name: 'Mike S.',
-    date: '2026-07-19'
-  },
-  {
-    property: 'craft-tampa',
-    text: 'Terrible service, waited 45 minutes for drinks. Very disappointed.',
-    rating: 2,
-    name: 'Sarah T.',
-    date: '2026-07-18'
-  },
-  {
-    property: 'pirate-water-taxi',
-    text: 'Perfect day on the water! The crew was friendly and the ambiance was beautiful.',
-    rating: 5,
-    name: 'Robert K.',
-    date: '2026-07-17'
-  },
-  {
-    property: 'pirate-water-taxi',
-    text: 'Food was delicious, live music was entertaining. Worth every penny!',
-    rating: 5,
-    name: 'Amanda R.',
-    date: '2026-07-16'
-  },
-  {
-    property: 'nashville-riverboat',
-    text: 'Great entertainment and good food. Bartender was helpful and knowledgeable.',
-    rating: 4,
-    name: 'Chris L.',
-    date: '2026-07-15'
-  },
-  {
-    property: 'lost-pearl',
-    text: 'Excellent view and clean facilities. The staff went above and beyond!',
-    rating: 5,
-    name: 'Emma W.',
-    date: '2026-07-14'
-  },
-  {
-    property: 'lost-pearl',
-    text: 'Decent experience but music was too loud and prices are steep.',
-    rating: 3,
-    name: 'David P.',
-    date: '2026-07-13'
+async function scrapeGoogleMapsReviews(propertyId, propertyName, googleMapsUrl) {
+  console.log(`\nScraping ${propertyName}...`);
+
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    });
+
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 800 });
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+
+    console.log(`  Loading ${googleMapsUrl}...`);
+    await page.goto(googleMapsUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+
+    // Scroll to reveal reviews
+    console.log(`  Scrolling to load reviews...`);
+    for (let i = 0; i < 5; i++) {
+      await page.evaluate(() => {
+        const reviewsSection = document.querySelector('[role="region"]');
+        if (reviewsSection) {
+          reviewsSection.scrollTop = reviewsSection.scrollHeight;
+        }
+      });
+      await page.waitForTimeout(1500);
+    }
+
+    // Extract reviews from Google Maps
+    console.log(`  Extracting reviews...`);
+    const reviews = await page.evaluate(() => {
+      const reviewDivs = Array.from(document.querySelectorAll('[data-review-id]'));
+
+      return reviewDivs.slice(0, 50).map(div => {
+        try {
+          // Extract rating (star count)
+          const ratingElement = div.querySelector('[role="img"]');
+          const ratingText = ratingElement?.getAttribute('aria-label') || '';
+          const rating = parseInt(ratingText.match(/\d/)?.[0] || '5');
+
+          // Extract reviewer name
+          const nameElement = div.querySelector('[aria-label*="Reviews"]')?.closest('button') ||
+                            div.querySelector('[data-tooltip-id]');
+          const reviewerName = nameElement?.textContent?.trim() || 'Anonymous';
+
+          // Extract review text
+          const reviewTextElement = div.querySelector('[data-review-id]')?.querySelector('span[aria-hidden="true"]');
+          const text = reviewTextElement?.textContent?.trim() || '';
+
+          // Extract date (look for relative date like "2 months ago")
+          const dateElements = Array.from(div.querySelectorAll('span')).filter(el =>
+            el.textContent.match(/ago|day|week|month|year/) && el.textContent.length < 50
+          );
+          const dateText = dateElements[0]?.textContent?.trim() || new Date().toISOString().split('T')[0];
+
+          return {
+            text: text.substring(0, 2000),
+            rating: Math.min(Math.max(rating, 1), 5),
+            reviewerName: reviewerName.substring(0, 100),
+            date: dateText,
+            dataId: div.getAttribute('data-review-id')
+          };
+        } catch (e) {
+          return null;
+        }
+      }).filter(r => r && r.text && r.text.length > 10);
+    });
+
+    await browser.close();
+
+    console.log(`  Found ${reviews.length} reviews`);
+    return reviews;
+
+  } catch (error) {
+    console.error(`  Error scraping ${propertyName}:`, error.message);
+    if (browser) await browser.close();
+    return [];
   }
-];
+}
 
 async function runScraper() {
-  console.log('Starting Manthey Hospitality Review Scraper...');
-  console.log(`Supabase URL: ${SUPABASE_URL}`);
+  console.log('=== Manthey Hospitality Review Scraper ===\n');
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('Missing Supabase credentials in environment variables');
+    console.error('ERROR: Missing Supabase credentials');
     process.exit(1);
   }
 
-  let insertedCount = 0;
+  const properties = JSON.parse(fs.readFileSync(path.join(__dirname, 'properties.json'), 'utf8')).properties;
+  let totalInserted = 0;
 
-  for (const review of testReviews) {
-    const reviewId = generateId();
-    const sentiment = review.rating >= 4 ? 'positive' : review.rating === 3 ? 'neutral' : 'negative';
+  for (const prop of properties) {
+    try {
+      const reviews = await scrapeGoogleMapsReviews(prop.id, prop.name, prop.googleMapsUrl);
 
-    // Insert review
-    const reviewResult = await supabaseQuery('reviews', {
-      id: reviewId,
-      property_id: review.property,
-      text: review.text,
-      rating: review.rating,
-      reviewer_name: review.name,
-      review_date: review.date,
-      sentiment: sentiment
-    });
+      for (const review of reviews) {
+        const reviewId = generateId();
+        const sentiment = review.rating >= 4 ? 'positive' : review.rating === 3 ? 'neutral' : 'negative';
 
-    if (reviewResult) {
-      insertedCount++;
-      console.log(`✓ Inserted review: ${review.name} on ${review.property}`);
-
-      // Extract and insert staff mentions
-      const staffMentions = [];
-      if (review.text.includes('Sarah')) staffMentions.push({ name: 'Sarah', type: 'name', sentiment });
-      if (review.text.includes('John')) staffMentions.push({ name: 'John', type: 'name', sentiment });
-      if (review.text.includes('Mike')) staffMentions.push({ name: 'Mike', type: 'name', sentiment });
-      if (review.text.includes('Jason')) staffMentions.push({ name: 'Jason', type: 'name', sentiment });
-      if (review.text.includes('Captain')) staffMentions.push({ name: 'Captain', type: 'role', sentiment });
-      if (review.text.includes('bartender')) staffMentions.push({ name: 'Bartender', type: 'role', sentiment });
-      if (review.text.includes('DJ')) staffMentions.push({ name: 'DJ', type: 'role', sentiment });
-      if (review.text.includes('staff')) staffMentions.push({ name: 'Staff', type: 'role', sentiment });
-
-      for (const mention of staffMentions) {
-        await supabaseQuery('staff_mentions', {
-          id: generateId(),
-          review_id: reviewId,
-          staff_name: mention.name,
-          mention_type: mention.type,
+        // Insert review
+        const result = await supabaseQuery('reviews', {
+          id: reviewId,
+          property_id: prop.id,
+          text: review.text,
+          rating: review.rating,
+          reviewer_name: review.reviewerName,
+          review_date: review.date,
           sentiment: sentiment
         });
+
+        if (result) {
+          totalInserted++;
+
+          // Extract and insert staff mentions
+          const staffPatterns = {
+            'Sarah': /sarah/i,
+            'John': /john/i,
+            'Mike': /mike/i,
+            'Jason': /jason/i,
+            'Bartender': /bartender/i,
+            'Captain': /captain/i,
+            'Server': /server/i,
+            'Staff': /staff/i,
+            'DJ': /dj/i
+          };
+
+          for (const [name, pattern] of Object.entries(staffPatterns)) {
+            if (pattern.test(review.text)) {
+              await supabaseQuery('staff_mentions', {
+                id: generateId(),
+                review_id: reviewId,
+                staff_name: name,
+                mention_type: name.match(/bartender|captain|server|dj|staff/i) ? 'role' : 'name',
+                sentiment: sentiment
+              });
+            }
+          }
+
+          // Extract and insert feature mentions
+          const features = {
+            'live_music': /music|band|dj|entertainment|live/i,
+            'food_bar': /food|bar|drink|service|bartender|meal|appetizer|cuisine/i,
+            'ambiance': /clean|atmosphere|ambiance|view|deck|boat|vessel|beautiful|decor|facility/i,
+            'price': /price|cost|value|expensive|cheap|overpriced|worth|affordable/i
+          };
+
+          for (const [featureType, pattern] of Object.entries(features)) {
+            if (pattern.test(review.text)) {
+              await supabaseQuery('feature_mentions', {
+                id: generateId(),
+                review_id: reviewId,
+                feature_type: featureType,
+                sentiment: sentiment
+              });
+            }
+          }
+        }
       }
 
-      // Extract and insert feature mentions
-      const featureMentions = [];
-      if (review.text.match(/music|band|dj|entertainment/i)) featureMentions.push('live_music');
-      if (review.text.match(/food|bar|drink|service|bartender/i)) featureMentions.push('food_bar');
-      if (review.text.match(/clean|atmosphere|view|vessel|beautiful|ambiance/i)) featureMentions.push('ambiance');
-      if (review.text.match(/price|cost|expensive|cheap|overpriced|worth/i)) featureMentions.push('price');
-
-      for (const feature of [...new Set(featureMentions)]) {
-        await supabaseQuery('feature_mentions', {
-          id: generateId(),
-          review_id: reviewId,
-          feature_type: feature,
-          sentiment: sentiment
-        });
-      }
+      console.log(`✓ ${prop.name}: inserted ${reviews.length} reviews`);
+    } catch (error) {
+      console.error(`✗ ${prop.name}: ${error.message}`);
     }
   }
 
-  console.log(`\n✓ Scrape complete! Inserted ${insertedCount} reviews into Supabase`);
+  console.log(`\n=== Complete ===`);
+  console.log(`Total reviews inserted: ${totalInserted}`);
+  console.log(`Dashboard will update at: https://manthey-reviews-465t.vercel.app/`);
 }
 
 runScraper().catch(error => {
