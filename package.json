@@ -1,0 +1,19 @@
+{
+  "name": "manthey-reviews",
+  "version": "1.0.0",
+  "description": "Automated Google review scraper and sentiment dashboard for Manthey Hospitality",
+  "main": "scraper.js",
+  "scripts": {
+    "dev": "node scraper.js",
+    "scrape": "node scraper.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
