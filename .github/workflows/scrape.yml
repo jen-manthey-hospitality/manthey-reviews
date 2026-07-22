@@ -22,8 +22,8 @@ jobs:
 
       - name: Run scraper
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: https://ofgicptdoygttkyndrnb.supabase.co
+          SUPABASE_ANON_KEY: sb_publishable_CSaPz3PkfOn6eEUpBoWxWQ_l7IaTzAK
         run: npm run scrape
 
       - name: Commit results
