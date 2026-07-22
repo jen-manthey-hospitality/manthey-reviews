@@ -1,14 +1,39 @@
 import React, { useState, useEffect } from 'react'
+import Reviews from './Reviews'
 
 export default function App() {
+  const [currentPage, setCurrentPage] = useState('dashboard')
   const [stats, setStats] = useState(null)
+  const [allReviews, setAllReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedProperty, setSelectedProperty] = useState('all')
 
   useEffect(() => {
-    // In production, this would fetch from Supabase
-    // For now, show mock data to demonstrate the dashboard structure
     setTimeout(() => {
+      // Mock reviews for demonstration
+      const mockReviews = [
+        { id: '1', property_id: 'yacht-starship', text: 'Amazing experience! The bartender Sarah was so friendly and the live music was fantastic!', rating: 5, reviewer_name: 'Jane D.', review_date: '2026-07-22', sentiment: 'positive' },
+        { id: '2', property_id: 'yacht-starship', text: 'Great food and wonderful atmosphere. Captain Mike was very professional.', rating: 5, reviewer_name: 'Tom H.', review_date: '2026-07-21', sentiment: 'positive' },
+        { id: '3', property_id: 'yacht-starship', text: 'Beautiful vessel, clean and well-maintained. The service was excellent!', rating: 5, reviewer_name: 'Lisa M.', review_date: '2026-07-20', sentiment: 'positive' },
+        { id: '4', property_id: 'craft-tampa', text: 'Nice bar setup with good drinks. DJ Jason was great but the place was a bit overpriced.', rating: 3, reviewer_name: 'Mike S.', review_date: '2026-07-19', sentiment: 'neutral' },
+        { id: '5', property_id: 'craft-tampa', text: 'Terrible service, waited 45 minutes for drinks. Very disappointed.', rating: 2, reviewer_name: 'Sarah T.', review_date: '2026-07-18', sentiment: 'negative' },
+        { id: '6', property_id: 'pirate-water-taxi', text: 'Perfect day on the water! The crew was friendly and the ambiance was beautiful.', rating: 5, reviewer_name: 'Robert K.', review_date: '2026-07-17', sentiment: 'positive' },
+        { id: '7', property_id: 'pirate-water-taxi', text: 'Food was delicious, live music was entertaining. Worth every penny!', rating: 5, reviewer_name: 'Amanda R.', review_date: '2026-07-16', sentiment: 'positive' },
+        { id: '8', property_id: 'nashville-riverboat', text: 'Great entertainment and good food. Bartender was helpful and knowledgeable.', rating: 4, reviewer_name: 'Chris L.', review_date: '2026-07-15', sentiment: 'positive' },
+        { id: '9', property_id: 'lost-pearl', text: 'Excellent view and clean facilities. The staff went above and beyond!', rating: 5, reviewer_name: 'Emma W.', review_date: '2026-07-14', sentiment: 'positive' },
+        { id: '10', property_id: 'lost-pearl', text: 'Decent experience but music was too loud and prices are steep.', rating: 3, reviewer_name: 'David P.', review_date: '2026-07-13', sentiment: 'neutral' },
+      ]
+
+      setAllReviews(mockReviews)
+
+      const properties = [
+        { id: 'yacht-starship', name: 'Yacht StarShip', reviews: 89 },
+        { id: 'craft-tampa', name: 'Craft Tampa', reviews: 67 },
+        { id: 'pirate-water-taxi', name: 'Pirate Water Taxi', reviews: 78 },
+        { id: 'nashville-riverboat', name: 'Nashville Riverboat', reviews: 56 },
+        { id: 'lost-pearl', name: 'Lost Pearl', reviews: 52 }
+      ]
+
       setStats({
         totalReviews: 342,
         avgRating: 4.2,
@@ -27,13 +52,7 @@ export default function App() {
           { name: 'Ambiance', positive: 198, negative: 8 },
           { name: 'Price/Value', positive: 34, negative: 18 }
         ],
-        properties: [
-          { id: 'yacht-starship', name: 'Yacht StarShip', reviews: 89 },
-          { id: 'craft-tampa', name: 'Craft Tampa', reviews: 67 },
-          { id: 'pirate-water-taxi', name: 'Pirate Water Taxi', reviews: 78 },
-          { id: 'nashville-riverboat', name: 'Nashville Riverboat', reviews: 56 },
-          { id: 'lost-pearl', name: 'Lost Pearl', reviews: 52 }
-        ]
+        properties: properties
       })
       setLoading(false)
     }, 500)
@@ -55,6 +74,10 @@ export default function App() {
     )
   }
 
+  if (currentPage === 'reviews') {
+    return <Reviews onBack={() => setCurrentPage('dashboard')} allReviews={allReviews} properties={stats.properties} />
+  }
+
   return (
     <div className="container">
       <div className="header">
@@ -66,10 +89,10 @@ export default function App() {
       </div>
 
       <div className="grid">
-        <div className="card">
+        <div className="card" style={{ cursor: 'pointer', transition: 'box-shadow 0.2s' }} onClick={() => setCurrentPage('reviews')} onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'} onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'}>
           <div className="stat-label">Total Reviews</div>
           <div className="stat">{stats.totalReviews}</div>
-          <p style={{ fontSize: '0.9rem', color: '#666' }}>All properties combined</p>
+          <p style={{ fontSize: '0.9rem', color: '#666' }}>Click to view all →</p>
         </div>
 
         <div className="card">
@@ -78,7 +101,7 @@ export default function App() {
           <p style={{ fontSize: '0.9rem', color: '#666' }}>Out of 5 stars</p>
         </div>
 
-        <div className="card">
+        <div className="card" style={{ cursor: 'pointer', transition: 'box-shadow 0.2s' }} onClick={() => setCurrentPage('reviews')} onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'} onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'}>
           <div className="stat-label">Sentiment Breakdown</div>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <div>
@@ -94,6 +117,7 @@ export default function App() {
               <div style={{ fontSize: '0.8rem', color: '#666' }}>Negative</div>
             </div>
           </div>
+          <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>Click to view all →</p>
         </div>
       </div>
 
