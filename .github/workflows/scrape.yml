@@ -16,20 +16,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
+
+      - name: Install Puppeteer system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
 
       - name: Run scraper
         env:
           SUPABASE_URL: https://ofgicptdoygttkyndrnb.supabase.co
           SUPABASE_ANON_KEY: sb_publishable_CSaPz3PkfOn6eEUpBoWxWQ_l7IaTzAK
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
         run: npm run scrape
 
-      - name: Commit results
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "Review Scraper Bot"
-          git add -A
-          git commit -m "chore: automated review scrape $(date +'%Y-%m-%d')" || true
-          git push
+      - name: Log completion
+        if: success()
+        run: echo "✓ Review scrape completed successfully at $(date)"
+
+      - name: Log errors
+        if: failure()
+        run: echo "✗ Review scrape failed - check logs above"
