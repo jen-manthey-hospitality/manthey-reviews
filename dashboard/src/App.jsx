@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import Reviews from './Reviews'
+
+const supabase = createClient(
+  'https://ofgicptdoygttkyndrnb.supabase.co',
+  'sb_publishable_CSaPz3PkfOn6eEUpBoWxWQ_l7IaTzAK'
+)
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
@@ -9,53 +15,92 @@ export default function App() {
   const [selectedProperty, setSelectedProperty] = useState('all')
 
   useEffect(() => {
-    setTimeout(() => {
-      // Mock reviews for demonstration
-      const mockReviews = [
-        { id: '1', property_id: 'yacht-starship', text: 'Amazing experience! The bartender Sarah was so friendly and the live music was fantastic!', rating: 5, reviewer_name: 'Jane D.', review_date: '2026-07-22', sentiment: 'positive' },
-        { id: '2', property_id: 'yacht-starship', text: 'Great food and wonderful atmosphere. Captain Mike was very professional.', rating: 5, reviewer_name: 'Tom H.', review_date: '2026-07-21', sentiment: 'positive' },
-        { id: '3', property_id: 'yacht-starship', text: 'Beautiful vessel, clean and well-maintained. The service was excellent!', rating: 5, reviewer_name: 'Lisa M.', review_date: '2026-07-20', sentiment: 'positive' },
-        { id: '4', property_id: 'craft-tampa', text: 'Nice bar setup with good drinks. DJ Jason was great but the place was a bit overpriced.', rating: 3, reviewer_name: 'Mike S.', review_date: '2026-07-19', sentiment: 'neutral' },
-        { id: '5', property_id: 'craft-tampa', text: 'Terrible service, waited 45 minutes for drinks. Very disappointed.', rating: 2, reviewer_name: 'Sarah T.', review_date: '2026-07-18', sentiment: 'negative' },
-        { id: '6', property_id: 'pirate-water-taxi', text: 'Perfect day on the water! The crew was friendly and the ambiance was beautiful.', rating: 5, reviewer_name: 'Robert K.', review_date: '2026-07-17', sentiment: 'positive' },
-        { id: '7', property_id: 'pirate-water-taxi', text: 'Food was delicious, live music was entertaining. Worth every penny!', rating: 5, reviewer_name: 'Amanda R.', review_date: '2026-07-16', sentiment: 'positive' },
-        { id: '8', property_id: 'nashville-riverboat', text: 'Great entertainment and good food. Bartender was helpful and knowledgeable.', rating: 4, reviewer_name: 'Chris L.', review_date: '2026-07-15', sentiment: 'positive' },
-        { id: '9', property_id: 'lost-pearl', text: 'Excellent view and clean facilities. The staff went above and beyond!', rating: 5, reviewer_name: 'Emma W.', review_date: '2026-07-14', sentiment: 'positive' },
-        { id: '10', property_id: 'lost-pearl', text: 'Decent experience but music was too loud and prices are steep.', rating: 3, reviewer_name: 'David P.', review_date: '2026-07-13', sentiment: 'neutral' },
-      ]
+    async function loadData() {
+      try {
+        const { data: reviews, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('*')
+          .order('review_date', { ascending: false })
 
-      setAllReviews(mockReviews)
+        if (reviewsError) throw reviewsError
 
-      const properties = [
-        { id: 'yacht-starship', name: 'Yacht StarShip', reviews: 89 },
-        { id: 'craft-tampa', name: 'Craft Tampa', reviews: 67 },
-        { id: 'pirate-water-taxi', name: 'Pirate Water Taxi', reviews: 78 },
-        { id: 'nashville-riverboat', name: 'Nashville Riverboat', reviews: 56 },
-        { id: 'lost-pearl', name: 'Lost Pearl', reviews: 52 }
-      ]
+        const { data: staffData, error: staffError } = await supabase
+          .from('staff_mentions')
+          .select('*')
 
-      setStats({
-        totalReviews: 342,
-        avgRating: 4.2,
-        positiveCount: 256,
-        negativeCount: 45,
-        neutralCount: 41,
-        topStaff: [
-          { name: 'Sarah (Server)', positive: 34, negative: 2 },
-          { name: 'John (Bartender)', positive: 28, negative: 1 },
-          { name: 'Mike (Captain)', positive: 22, negative: 3 },
-          { name: 'Jason (DJ)', positive: 18, negative: 0 }
-        ],
-        features: [
-          { name: 'Live Music', positive: 89, negative: 12 },
-          { name: 'Food & Bar', positive: 156, negative: 23 },
-          { name: 'Ambiance', positive: 198, negative: 8 },
-          { name: 'Price/Value', positive: 34, negative: 18 }
-        ],
-        properties: properties
-      })
-      setLoading(false)
-    }, 500)
+        if (staffError) throw staffError
+
+        const { data: featureData, error: featureError } = await supabase
+          .from('feature_mentions')
+          .select('*')
+
+        if (featureError) throw featureError
+
+        setAllReviews(reviews || [])
+
+        const properties = [
+          { id: 'yacht-starship', name: 'Yacht StarShip', reviews: reviews?.filter(r => r.property_id === 'yacht-starship').length || 0 },
+          { id: 'craft-tampa', name: 'Craft Tampa', reviews: reviews?.filter(r => r.property_id === 'craft-tampa').length || 0 },
+          { id: 'pirate-water-taxi', name: 'Pirate Water Taxi', reviews: reviews?.filter(r => r.property_id === 'pirate-water-taxi').length || 0 },
+          { id: 'nashville-riverboat', name: 'Nashville Riverboat', reviews: reviews?.filter(r => r.property_id === 'nashville-riverboat').length || 0 },
+          { id: 'lost-pearl', name: 'Lost Pearl', reviews: reviews?.filter(r => r.property_id === 'lost-pearl').length || 0 }
+        ]
+
+        const totalReviews = reviews?.length || 0
+        const avgRating = reviews && reviews.length > 0
+          ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+          : 0
+        const positiveCount = reviews?.filter(r => r.sentiment === 'positive').length || 0
+        const negativeCount = reviews?.filter(r => r.sentiment === 'negative').length || 0
+
+        const staffMentions = {}
+        staffData?.forEach(mention => {
+          if (!staffMentions[mention.staff_name]) {
+            staffMentions[mention.staff_name] = { positive: 0, negative: 0 }
+          }
+          if (mention.sentiment === 'positive') staffMentions[mention.staff_name].positive++
+          else if (mention.sentiment === 'negative') staffMentions[mention.staff_name].negative++
+        })
+
+        const topStaff = Object.entries(staffMentions)
+          .map(([name, counts]) => ({ name, positive: counts.positive, negative: counts.negative }))
+          .sort((a, b) => b.positive - a.positive)
+          .slice(0, 4)
+
+        const features = {}
+        featureData?.forEach(mention => {
+          if (!features[mention.feature_type]) {
+            features[mention.feature_type] = { positive: 0, negative: 0 }
+          }
+          if (mention.sentiment === 'positive') features[mention.feature_type].positive++
+          else if (mention.sentiment === 'negative') features[mention.feature_type].negative++
+        })
+
+        const featureList = Object.entries(features).map(([type, counts]) => ({
+          name: type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+          positive: counts.positive,
+          negative: counts.negative
+        }))
+
+        setStats({
+          totalReviews,
+          avgRating,
+          positiveCount,
+          negativeCount,
+          neutralCount: totalReviews - positiveCount - negativeCount,
+          topStaff: topStaff.length > 0 ? topStaff : [{ name: 'No staff mentions yet', positive: 0, negative: 0 }],
+          features: featureList.length > 0 ? featureList : [{ name: 'Live Music', positive: 0, negative: 0 }],
+          properties
+        })
+      } catch (error) {
+        console.error('Error loading data:', error)
+        setStats(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
   }, [])
 
   if (loading) {
