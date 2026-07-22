@@ -9,7 +9,7 @@
     "build": "cd dashboard && npm run build"
   },
   "dependencies": {
-    "puppeteer": "^21.0.0",
+    "puppeteer-core": "^21.0.0",
     "dotenv": "^16.3.1",
     "@supabase/supabase-js": "^2.38.0"
   }
