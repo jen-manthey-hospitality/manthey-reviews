@@ -96,11 +96,26 @@ function extractFeatures(text) {
 async function importReviews() {
   console.log('=== Importing Nashville Riverboats Reviews from CSV ===\n');
 
-  // Read CSV file
-  const csvPath = process.argv[2] || '/mnt/c/Users/JenniferRichardson/Downloads/NRB Reviews - review replies .csv';
+  // Read CSV file - look in repo root first, then Downloads
+  let csvPath = process.argv[2];
+  if (!csvPath) {
+    // Try repo root first (for GitHub Actions)
+    if (fs.existsSync('NRB Reviews - review replies .csv')) {
+      csvPath = 'NRB Reviews - review replies .csv';
+    }
+    // Fall back to Downloads for local testing
+    else if (fs.existsSync('/mnt/c/Users/JenniferRichardson/Downloads/NRB Reviews - review replies .csv')) {
+      csvPath = '/mnt/c/Users/JenniferRichardson/Downloads/NRB Reviews - review replies .csv';
+    }
+    // Try Windows path for local testing
+    else if (fs.existsSync('C:\\Users\\JenniferRichardson\\Downloads\\NRB Reviews - review replies .csv')) {
+      csvPath = 'C:\\Users\\JenniferRichardson\\Downloads\\NRB Reviews - review replies .csv';
+    }
+  }
 
   if (!fs.existsSync(csvPath)) {
     console.error(`CSV file not found at: ${csvPath}`);
+    console.error('Please ensure "NRB Reviews - review replies .csv" is in the repo root or provide path as argument');
     process.exit(1);
   }
 
