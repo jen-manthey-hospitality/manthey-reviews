@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mZ2ljcHRkb3lndHRreW5kcm5iIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDczNTkyOCwiZXhwIjoyMTAwMzExOTI4fQ.0SUbw0Cx_lu4fV-9JAvWk7gKKtt1lGfaISwHopcAri4';
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/reviews?select=*&order=review_date.desc`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/reviews?select=*&order=review_date.desc&limit=1000`, {
       headers: {
         'apikey': SUPABASE_SERVICE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
