@@ -131,22 +131,31 @@ async function importReviews() {
     line.length > 20 // Skip very short lines
   );
 
-  console.log(`Found ${reviews.length} reviews in CSV\n`);
+  console.log(`Found ${reviews.length} reviews in CSV`);
+  console.log(`Sample reviews:`);
+  reviews.slice(0, 3).forEach((r, i) => {
+    console.log(`  ${i + 1}. "${r.substring(0, 80)}..."`);
+  });
+  console.log('');
 
   const propertyId = 'nashville-riverboats';
   let insertedCount = 0;
+  let skippedCount = 0;
 
   for (let i = 0; i < reviews.length; i++) {
     const text = reviews[i].replace(/^["']|["']$/g, ''); // Remove quotes if present
 
-    if (text.length < 10) continue;
+    if (text.length < 10) {
+      skippedCount++;
+      continue;
+    }
 
     const reviewId = generateId();
     const sentiment = analyzeSentiment(text);
     const rating = sentiment === 'positive' ? 5 : sentiment === 'negative' ? 2 : 3;
 
     // Log first review attempt
-    if (i === 0) {
+    if (insertedCount === 0) {
       console.log('📝 Attempting first review insert:');
       console.log(`   Review text: "${text.substring(0, 100)}..."`);
       console.log(`   Sentiment: ${sentiment}, Rating: ${rating}`);
@@ -197,6 +206,7 @@ async function importReviews() {
 
   console.log(`\n=== Complete ===`);
   console.log(`✓ Imported ${insertedCount} Nashville Riverboats reviews to Supabase`);
+  console.log(`⊘ Skipped ${skippedCount} reviews (too short)`);
   console.log(`Dashboard: https://manthey-reviews-465t.vercel.app/`);
 }
 
