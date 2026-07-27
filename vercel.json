@@ -1,5 +1,8 @@
 {
   "buildCommand": "cd dashboard && npm install && npm run build",
   "outputDirectory": "dashboard/dist",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "env": {
+    "SUPABASE_SERVICE_KEY": "@supabase_service_key"
+  }
 }
