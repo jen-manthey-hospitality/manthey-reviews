@@ -42,7 +42,7 @@ export default function App() {
           { id: 'yacht-starship', name: 'Yacht StarShip', reviews: reviews?.filter(r => r.property_id === 'yacht-starship').length || 0 },
           { id: 'craft-tampa', name: 'Craft Tampa', reviews: reviews?.filter(r => r.property_id === 'craft-tampa').length || 0 },
           { id: 'pirate-water-taxi', name: 'Pirate Water Taxi', reviews: reviews?.filter(r => r.property_id === 'pirate-water-taxi').length || 0 },
-          { id: 'nashville-riverboat', name: 'Nashville Riverboat', reviews: reviews?.filter(r => r.property_id === 'nashville-riverboat').length || 0 },
+          { id: 'nashville-riverboats', name: 'Nashville Riverboats', reviews: reviews?.filter(r => r.property_id === 'nashville-riverboats').length || 0 },
           { id: 'lost-pearl', name: 'Lost Pearl', reviews: reviews?.filter(r => r.property_id === 'lost-pearl').length || 0 }
         ]
 
