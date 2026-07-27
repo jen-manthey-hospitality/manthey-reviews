@@ -17,24 +17,17 @@ export default function App() {
   useEffect(() => {
     async function loadData() {
       try {
-        const { data: reviews, error: reviewsError } = await supabase
-          .from('reviews')
-          .select('*')
-          .order('review_date', { ascending: false })
+        const reviewsResponse = await fetch('/api/reviews')
+        if (!reviewsResponse.ok) throw new Error('Failed to fetch reviews')
+        const reviews = await reviewsResponse.json()
 
-        if (reviewsError) throw reviewsError
+        const staffResponse = await fetch('/api/staff')
+        if (!staffResponse.ok) throw new Error('Failed to fetch staff mentions')
+        const staffData = await staffResponse.json()
 
-        const { data: staffData, error: staffError } = await supabase
-          .from('staff_mentions')
-          .select('*')
-
-        if (staffError) throw staffError
-
-        const { data: featureData, error: featureError } = await supabase
-          .from('feature_mentions')
-          .select('*')
-
-        if (featureError) throw featureError
+        const featureResponse = await fetch('/api/features')
+        if (!featureResponse.ok) throw new Error('Failed to fetch features')
+        const featureData = await featureResponse.json()
 
         setAllReviews(reviews || [])
 
