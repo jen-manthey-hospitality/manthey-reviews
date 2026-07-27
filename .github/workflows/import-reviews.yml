@@ -30,7 +30,7 @@ jobs:
       - name: Run CSV import
         env:
           SUPABASE_URL: https://ofgicptdoygttkyndrnb.supabase.co
-          SUPABASE_ANON_KEY: sb_publishable_CSaPz3PkfOn6eEUpBoWxWQ_l7IaTzAK
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: node import-from-csv.js
 
       - name: Import complete
