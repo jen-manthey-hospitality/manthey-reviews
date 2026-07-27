@@ -196,14 +196,15 @@ async function importReviews() {
       console.log(`   Sentiment: ${sentiment}, Rating: ${rating}`);
     }
 
-    // Insert review
+    // Insert review (spread across days to avoid constraint violation)
+    const reviewDate = new Date(Date.now() - (reviews.length - i) * 86400000); // spread backwards
     const result = await supabaseQuery('reviews', {
       id: reviewId,
       property_id: propertyId,
       text: text.substring(0, 5000),
       rating: rating,
       reviewer_name: 'Guest',
-      review_date: new Date().toISOString().split('T')[0],
+      review_date: reviewDate.toISOString().split('T')[0],
       sentiment: sentiment
     });
 
