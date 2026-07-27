@@ -10,12 +10,14 @@ function generateId() {
 
 async function supabaseQuery(table, data) {
   const url = `${SUPABASE_URL}/rest/v1/${table}`;
+  const key = process.env.SUPABASE_ANON_KEY || 'sb_publishable_CSaPz3PkfOn6eEUpBoWxWQ_l7IaTzAK';
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
