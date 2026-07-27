@@ -20,7 +20,6 @@ export default function App() {
         const { data: reviews, error: reviewsError } = await supabase
           .from('reviews')
           .select('*')
-          .eq('property_id', 'nashville-riverboats')
           .order('review_date', { ascending: false })
 
         if (reviewsError) throw reviewsError
