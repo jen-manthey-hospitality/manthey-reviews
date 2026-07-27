@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // API endpoint to fetch all reviews from Supabase
   const SUPABASE_URL = 'https://ofgicptdoygttkyndrnb.supabase.co';
   const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mZ2ljcHRkb3lndHRreW5kcm5iIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDczNTkyOCwiZXhwIjoyMTAwMzExOTI4fQ.0SUbw0Cx_lu4fV-9JAvWk7gKKtt1lGfaISwHopcAri4';
 
