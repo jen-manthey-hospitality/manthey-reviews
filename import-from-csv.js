@@ -95,8 +95,43 @@ function extractFeatures(text) {
     .map(([type]) => type);
 }
 
+async function ensurePropertyExists() {
+  const propertyId = 'nashville-riverboats';
+  const url = `${SUPABASE_URL}/rest/v1/properties`;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || 'sb_publishable_CSaPz3PkfOn6eEUpBoWxWQ_l7IaTzAK';
+
+  try {
+    const response = await fetch(`${url}?id=eq.${propertyId}`, {
+      method: 'GET',
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.length === 0) {
+      console.log('📝 Property not found, creating: ' + propertyId);
+      await supabaseQuery('properties', {
+        id: propertyId,
+        name: 'Nashville Riverboats',
+        created_at: new Date().toISOString()
+      });
+      console.log('✓ Property created\n');
+    } else {
+      console.log('✓ Property already exists\n');
+    }
+  } catch (error) {
+    console.error('Error checking/creating property:', error.message);
+  }
+}
+
 async function importReviews() {
   console.log('=== Importing Nashville Riverboats Reviews from CSV ===\n');
+
+  await ensurePropertyExists();
 
   // Read CSV file - look in repo root first, then Downloads
   let csvPath = process.argv[2];
