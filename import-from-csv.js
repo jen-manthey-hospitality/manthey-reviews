@@ -27,6 +27,7 @@ async function supabaseQuery(table, data) {
 
     if (!response.ok) {
       const error = await response.text();
+      console.error(`API Error for ${table}:`, response.status, error);
       return null;
     }
 
