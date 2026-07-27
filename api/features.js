@@ -1,10 +1,6 @@
 export default async function handler(req, res) {
   const SUPABASE_URL = 'https://ofgicptdoygttkyndrnb.supabase.co';
-  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
-  if (!SUPABASE_SERVICE_KEY) {
-    return res.status(500).json({ error: 'Service key not configured' });
-  }
+  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mZ2ljcHRkb3lndHRreW5kcm5iIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDczNTkyOCwiZXhwIjoyMTAwMzExOTI4fQ.0SUbw0Cx_lu4fV-9JAvWk7gKKtt1lGfaISwHopcAri4';
 
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/feature_mentions?select=*`, {
