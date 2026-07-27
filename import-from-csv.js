@@ -27,7 +27,8 @@ async function supabaseQuery(table, data) {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error(`API Error for ${table}:`, response.status, error);
+      console.error(`❌ API Error for ${table} (${response.status}):`, error);
+      console.error(`   Data sent:`, JSON.stringify(data).substring(0, 200));
       return null;
     }
 
@@ -143,6 +144,13 @@ async function importReviews() {
     const reviewId = generateId();
     const sentiment = analyzeSentiment(text);
     const rating = sentiment === 'positive' ? 5 : sentiment === 'negative' ? 2 : 3;
+
+    // Log first review attempt
+    if (i === 0) {
+      console.log('📝 Attempting first review insert:');
+      console.log(`   Review text: "${text.substring(0, 100)}..."`);
+      console.log(`   Sentiment: ${sentiment}, Rating: ${rating}`);
+    }
 
     // Insert review
     const result = await supabaseQuery('reviews', {
